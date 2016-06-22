@@ -1,0 +1,7 @@
+bin
+lcc
+obj
+*.cbp
+*.depend
+*.layout
+*.prj
