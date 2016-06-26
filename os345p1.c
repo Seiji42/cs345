@@ -76,11 +76,6 @@ void mySigIntHandler()
 // 7. Supports background execution of non-intrinsic commands.
 //
 
-char *createToken(const char* string, int start, int end) {
-
-	return NULL;
-}
-
 int P1_shellTask(int argc, char* argv[])
 {
 	int i, found, newArgc;					// # of arguments
@@ -116,46 +111,59 @@ int P1_shellTask(int argc, char* argv[])
 			// split inBuffer into string tokens
 			int buffer_len = strlen(inBuffer) + 1;
 			bool quote = false;
-			bool whitespace = true;
+			bool whitespace = false;
 			bool make_token = false;
 
 			int token_start = 0;
 			for (i = 0; i < buffer_len; i++) {
 				switch(inBuffer[i]) {
-					case '\0':
-						printf("\nnull terminator found");
-						/*if(quote) {
-							printf("\nError");
-						}
-						if(!whitespace) {
-							make_token = true;
-							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
-						}
-						quote = false;
-						whitespace = false;&*/
-						break;
 					case ' ':
 						printf("\nspace found");
 						/*if(!whitespace && !quote) {
 							make_token = true;
 							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
+						}*/
+						if(!whitespace) {
+							printf("\nMake token: start=%d end=%d",token_start, i);
 						}
-						whitespace = true;*/
+						whitespace = true;
 						break;
 					case '\"':
 						printf("\nquote found");
+						if(!quote) {
+							token_start = i+1;
+						}
+						else {
+							printf("\nMake token: start=%d end=%d",token_start, i);
+						}
 						/*if(quote || !whitespace) {
 							make_token = true;
 							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
 						}
-						token_start = i+1;
-						quote = !quote;*/
+						token_start = i+1;*/
+						quote = !quote;
+						break;
+					case '\0':
+						printf("\nnull terminator found");
+						if(!whitespace) {
+							printf("\nMake token: start=%d end=%d",token_start, i);
+						}
+
+						if(quote) {
+							printf("\nError");
+						}
+
+						quote = false;
+						whitespace = false;
 						break;
 					default:
 						/*if(whitespace && !quote) {
 							token_start = i;
+						}*/
+						if(whitespace) {
+							token_start = i;
 						}
-						whitespace = false;*/
+						whitespace = false;
 						break;
 				}
 				/*if(make_token) {
