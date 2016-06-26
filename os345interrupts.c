@@ -98,6 +98,11 @@ static void keyboard_isr()
 	{
 		switch (inChar)
 		{
+			case '\b':
+				inBufIndx--;				// Adjust the buffer location
+				printf("\b \b");			// Adjust the screen display
+				break;
+
 			case '\r':
 			case '\n':
 			{

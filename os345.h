@@ -66,6 +66,7 @@ enum {PAGE_INIT, PAGE_READ, PAGE_OLD_WRITE, PAGE_NEW_WRITE,
 // ***********************************************************************
 // system structs
 typedef int bool;						// boolean value
+enum {false, true};
 typedef int TID;						// task id
 
 // semaphore

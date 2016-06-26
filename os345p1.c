@@ -75,6 +75,12 @@ void mySigIntHandler()
 // 6. If found, perform a function variable call passing argc/argv variables.
 // 7. Supports background execution of non-intrinsic commands.
 //
+
+char *createToken(const char* string, int start, int end) {
+
+	return NULL;
+}
+
 int P1_shellTask(int argc, char* argv[])
 {
 	int i, found, newArgc;					// # of arguments
@@ -85,7 +91,6 @@ int P1_shellTask(int argc, char* argv[])
 
 	sigAction(mySigIntHandler, mySIGINT);
 
-
 	while (1)
 	{
 		// output prompt
@@ -94,7 +99,7 @@ int P1_shellTask(int argc, char* argv[])
 
 		SEM_WAIT(inBufferReady);			// wait for input buffer semaphore
 		if (!inBuffer[0]) continue;		// ignore blank lines
-		// printf("%s", inBuffer);
+		// printf("\n%s", inBuffer);
 
 		SWAP										// do context switch
 
@@ -102,40 +107,78 @@ int P1_shellTask(int argc, char* argv[])
 			// ?? >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 			// ?? parse command line into argc, argv[] variables
 			// ?? must use malloc for argv storage!
-			static char *sp, *myArgv[MAX_ARGS];
+			int array_size = 5;
+			newArgc = 0;
+			newArgv = malloc(sizeof(char *) * array_size);
+			for (i = 0; i < array_size; i++)
+				newArgv[i] = 0;
 
-			// init arguments
-			newArgc = 1;
-			myArgv[0] = sp = inBuffer;				// point to input string
-			for (i=1; i<MAX_ARGS; i++)
-				myArgv[i] = 0;
+			// split inBuffer into string tokens
+			int buffer_len = strlen(inBuffer) + 1;
+			bool quote = false;
+			bool whitespace = true;
+			bool make_token = false;
 
-			// parse input string
-			while ((sp = strchr(sp, ' ')))
-			{
-				*sp++ = 0;
-				myArgv[newArgc++] = sp;
+			int token_start = 0;
+			for (i = 0; i < buffer_len; i++) {
+				switch(inBuffer[i]) {
+					case '\0':
+						printf("\nnull terminator found");
+						/*if(quote) {
+							printf("\nError");
+						}
+						if(!whitespace) {
+							make_token = true;
+							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
+						}
+						quote = false;
+						whitespace = false;&*/
+						break;
+					case ' ':
+						printf("\nspace found");
+						/*if(!whitespace && !quote) {
+							make_token = true;
+							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
+						}
+						whitespace = true;*/
+						break;
+					case '\"':
+						printf("\nquote found");
+						/*if(quote || !whitespace) {
+							make_token = true;
+							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
+						}
+						token_start = i+1;
+						quote = !quote;*/
+						break;
+					default:
+						/*if(whitespace && !quote) {
+							token_start = i;
+						}
+						whitespace = false;*/
+						break;
+				}
+				/*if(make_token) {
+					printf("\nstart:%d, end: %d",token_start, i);
+					make_token = false;
+					char* token = malloc(sizeof(char) * (i - token_start + 1));
+					strncpy(token, inBuffer + token_start, (i - token_start));
+					token[i-token_start] = '\0';
+					printf("\nToken: %s", token);
+				}*/
 			}
-			newArgv = myArgv;
+
 		}	// ?? >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+
+
 		// look for command
-		for (found = i = 0; i < NUM_COMMANDS; i++)
-		{
-			if (!strcmp(newArgv[0], commands[i]->command) ||
-				 !strcmp(newArgv[0], commands[i]->shortcut))
-			{
-				// command found
-				int retValue = (*commands[i]->func)(newArgc, newArgv);
-				if (retValue) printf("\nCommand Error %d", retValue);
-				found = TRUE;
-				break;
-			}
-		}
-		if (!found)	printf("\nInvalid command!");
 
 		// ?? free up any malloc'd argv parameters
-		for (i=0; i<INBUF_SIZE; i++) inBuffer[i] = 0;
+		for(i = 0; i < newArgc; i++)
+			free(newArgv[i]);
+		free(newArgv);
+
 	}
 	return 0;						// terminate task
 } // end P1_shellTask
