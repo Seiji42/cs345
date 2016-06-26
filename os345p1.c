@@ -76,6 +76,33 @@ void mySigIntHandler()
 // 7. Supports background execution of non-intrinsic commands.
 //
 
+char *createToken(char* string, int start, int end) {
+	char* token = malloc(sizeof(char) * (end - start + 1));
+	strncpy(token, string + start, (end - start));
+	token[end - start] = '\0';
+	printf("\n%s",token);
+	return token;
+}
+
+void addStringToArray(char* string, char** array, int* count, int* size) {
+	if(*count == *size) {
+		//create new array
+		(*size) *= 2;
+		char** temp = malloc(sizeof(char*) * (*size));
+		for (int i = 0; i < (*size); i++) {
+			if(i < (*count)) {
+				temp[i] = array[i];
+			}
+			else {
+				temp[i] = 0;
+			}
+		}
+		free(array);
+		array = temp;
+	}
+	array[(*count)++] = string;
+}
+
 int P1_shellTask(int argc, char* argv[])
 {
 	int i, found, newArgc;					// # of arguments
@@ -113,38 +140,41 @@ int P1_shellTask(int argc, char* argv[])
 			bool quote = false;
 			bool whitespace = true;
 			bool make_token = false;
+			bool invalid_arg = false;
 
 			int token_start = 0;
 			for (i = 0; i < buffer_len; i++) {
+				char * token;
 				switch(inBuffer[i]) {
 					case ' ':
-						printf("\nspace found");
+						// printf("\nspace found");
 						if(!whitespace && !quote) {
-							printf("\nMake token: start=%d end=%d",token_start, i);
+							token = createToken(inBuffer, token_start, i);
+							addStringToArray(token, newArgv, &newArgc, &array_size);
 						}
 						whitespace = true;
 						break;
 					case '\"':
-						printf("\nquotation mark found");
+						// printf("\nquotation mark found");
 						if(quote){
-							make_token = true;
-							printf("\nMake token: start=%d end=%d",token_start, i);
+							token = createToken(inBuffer, token_start, i);
+							addStringToArray(token, newArgv, &newArgc, &array_size);
 						}
 						else if (!whitespace) {
-							make_token = true;
-							printf("\nMake token: start=%d end=%d",token_start, i);
+							token = createToken(inBuffer, token_start, i);
+							addStringToArray(token, newArgv, &newArgc, &array_size);
 						}
 						token_start = i+1;
 						quote = !quote;
 						break;
 					case '\0':
-						printf("\nnull terminator found");
-						if(!whitespace) {
-							printf("\nMake token: start=%d end=%d",token_start, i);
-						}
-
+						// printf("\nnull terminator found");
 						if(quote) {
-							printf("\nError");
+							invalid_arg = true;
+						}
+						else if(!whitespace) {
+							token = createToken(inBuffer, token_start, i);
+							addStringToArray(token, newArgv, &newArgc, &array_size);
 						}
 
 						quote = false;
@@ -157,18 +187,12 @@ int P1_shellTask(int argc, char* argv[])
 						whitespace = false;
 						break;
 				}
-				/*if(make_token) {
-					printf("\nstart:%d, end: %d",token_start, i);
-					make_token = false;
-					char* token = malloc(sizeof(char) * (i - token_start + 1));
-					strncpy(token, inBuffer + token_start, (i - token_start));
-					token[i-token_start] = '\0';
-					printf("\nToken: %s", token);
-				}*/
 			}
-
 		}	// ?? >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+		for (i = 0; i < newArgc; i++){
+			printf("\ntoken%d: %s", i, newArgv[i]);
+		}
 
 
 		// look for command
