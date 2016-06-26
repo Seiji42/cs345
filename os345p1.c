@@ -111,7 +111,7 @@ int P1_shellTask(int argc, char* argv[])
 			// split inBuffer into string tokens
 			int buffer_len = strlen(inBuffer) + 1;
 			bool quote = false;
-			bool whitespace = false;
+			bool whitespace = true;
 			bool make_token = false;
 
 			int token_start = 0;
@@ -119,28 +119,22 @@ int P1_shellTask(int argc, char* argv[])
 				switch(inBuffer[i]) {
 					case ' ':
 						printf("\nspace found");
-						/*if(!whitespace && !quote) {
-							make_token = true;
-							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
-						}*/
-						if(!whitespace) {
+						if(!whitespace && !quote) {
 							printf("\nMake token: start=%d end=%d",token_start, i);
 						}
 						whitespace = true;
 						break;
 					case '\"':
-						printf("\nquote found");
-						if(!quote) {
-							token_start = i+1;
-						}
-						else {
+						printf("\nquotation mark found");
+						if(quote){
+							make_token = true;
 							printf("\nMake token: start=%d end=%d",token_start, i);
 						}
-						/*if(quote || !whitespace) {
+						else if (!whitespace) {
 							make_token = true;
-							 printf("\nToken: ?, start:%d, end: %d",token_start, i);
+							printf("\nMake token: start=%d end=%d",token_start, i);
 						}
-						token_start = i+1;*/
+						token_start = i+1;
 						quote = !quote;
 						break;
 					case '\0':
@@ -157,10 +151,7 @@ int P1_shellTask(int argc, char* argv[])
 						whitespace = false;
 						break;
 					default:
-						/*if(whitespace && !quote) {
-							token_start = i;
-						}*/
-						if(whitespace) {
+						if(whitespace && !quote) {
 							token_start = i;
 						}
 						whitespace = false;
