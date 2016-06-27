@@ -77,30 +77,30 @@ void mySigIntHandler()
 //
 
 char *createToken(char* string, int start, int end) {
+	//printf("\nstart:%d, end: %d",start, end);
 	char* token = malloc(sizeof(char) * (end - start + 1));
 	strncpy(token, string + start, (end - start));
 	token[end - start] = '\0';
-	printf("\n%s",token);
+	//printf("\n%s",token);
 	return token;
 }
 
 void addStringToArray(char* string, char** array, int* count, int* size) {
+	//printf("\nCount:%d, Size:%d", *count, *size);
 	if(*count == *size) {
 		//create new array
+		//printf("\nSize:%d", *size);
 		(*size) *= 2;
-		char** temp = malloc(sizeof(char*) * (*size));
-		for (int i = 0; i < (*size); i++) {
-			if(i < (*count)) {
-				temp[i] = array[i];
-			}
-			else {
-				temp[i] = 0;
-			}
-		}
-		free(array);
-		array = temp;
+		//printf("\nSize:%d", *size);
+		array = (char**)realloc(array, (*size) * sizeof(char*));
 	}
 	array[(*count)++] = string;
+
+	//printf("\nSize:%d, Count:%d", *size, *count);
+
+	//for (int j = 0; j < *count; j++){
+	//	printf("\ntoken added in spot %d: %s", j, array[j]);
+	//}
 }
 
 int P1_shellTask(int argc, char* argv[])
@@ -138,8 +138,7 @@ int P1_shellTask(int argc, char* argv[])
 			// split inBuffer into string tokens
 			int buffer_len = strlen(inBuffer) + 1;
 			bool quote = false;
-			bool whitespace = true;
-			bool make_token = false;
+			bool delim = true;
 			bool invalid_arg = false;
 
 			int token_start = 0;
@@ -148,51 +147,69 @@ int P1_shellTask(int argc, char* argv[])
 				switch(inBuffer[i]) {
 					case ' ':
 						// printf("\nspace found");
-						if(!whitespace && !quote) {
+						if(!delim && !quote) {
 							token = createToken(inBuffer, token_start, i);
 							addStringToArray(token, newArgv, &newArgc, &array_size);
+							printf("\nnew array space");
+							for (i = 0; i < newArgc; i++){
+								printf("\ntoken%d: %s", i, newArgv[i]);
+							}
 						}
-						whitespace = true;
+						delim = true;
 						break;
 					case '\"':
 						// printf("\nquotation mark found");
 						if(quote){
 							token = createToken(inBuffer, token_start, i);
 							addStringToArray(token, newArgv, &newArgc, &array_size);
+							printf("\nnew array end quote");
+							for (i = 0; i < newArgc; i++){
+								printf("\ntoken%d: %s", i, newArgv[i]);
+							}
+							delim = true;
 						}
-						else if (!whitespace) {
+						else if (!delim) {
 							token = createToken(inBuffer, token_start, i);
 							addStringToArray(token, newArgv, &newArgc, &array_size);
+							printf("\nnew array quote");
+							for (i = 0; i < newArgc; i++){
+								printf("\ntoken%d: %s", i, newArgv[i]);
+							}
 						}
 						token_start = i+1;
 						quote = !quote;
 						break;
 					case '\0':
-						// printf("\nnull terminator found");
+						printf("\nnull terminator found");
+						printf("\nQuote:%d, Delim:%d", quote, delim);
 						if(quote) {
 							invalid_arg = true;
 						}
-						else if(!whitespace) {
+						else if(!delim) {
 							token = createToken(inBuffer, token_start, i);
 							addStringToArray(token, newArgv, &newArgc, &array_size);
+							printf("\nnew array null");
+							for (i = 0; i < newArgc; i++){
+								printf("\ntoken%d: %s", i, newArgv[i]);
+							}
 						}
 
 						quote = false;
-						whitespace = false;
+						delim = false;
 						break;
 					default:
-						if(whitespace && !quote) {
+						if(delim && !quote) {
 							token_start = i;
 						}
-						whitespace = false;
+						delim = false;
 						break;
 				}
 			}
 		}	// ?? >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-		for (i = 0; i < newArgc; i++){
-			printf("\ntoken%d: %s", i, newArgv[i]);
-		}
+	//	for (i = 0; i < newArgc; i++){
+	//		printf("\ntoken%d: %s", i, newArgv[i]);
+	//	}
 
 
 		// look for command
