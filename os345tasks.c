@@ -73,7 +73,13 @@ int createTask(char* name,						// task name
 			tcb[tid].argc = argc;			// argument count
 
 			// ?? malloc new argv parameters
-			tcb[tid].argv = argv;			// argument pointers
+			tcb[tid].argv = malloc(sizeof(char*) * argc);			// argument pointers
+			for (size_t i = 0; i < argc; i++) {
+				tcb[tid].argv[i] = malloc(sizeof(char) * strlen(argv[i]) + 1);
+				memset(tcb[tid].argv[i], '\0', strlen(argv[i]) + 1);
+				strncpy(tcb[tid].argv[i], argv[i], sizeof(tcb[tid].argv[i]));
+				printf("\nString: %s", tcb[tid].argv[i]);
+			}
 
 			tcb[tid].event = 0;				// suspend semaphore
 			tcb[tid].RPT = 0;					// root page table (project 5)
@@ -174,6 +180,10 @@ int sysKillTask(int taskId)
 	}
 
 	// ?? delete task from system queues
+	for (size_t i = 0; i < tcb[taskId].argc; i++) {
+		free(tcb[taskId].argv[i]);
+	}
+	free(tcb[taskId].argv);
 
 	tcb[taskId].name = 0;			// release tcb slot
 	return 0;

@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <setjmp.h>
 #include <assert.h>
+#include <time.h>
 #include "os345.h"
 #include "os345signals.h"
 
@@ -76,6 +77,8 @@ void mySigIntHandler()
 // 7. Supports background execution of non-intrinsic commands.
 //
 
+
+
 char* createToken(char* string, int start, int end) {
 	char* token = malloc(sizeof(char) * (end - start + 1));
 	strncpy(token, string + start, (end - start));
@@ -126,6 +129,13 @@ int P1_shellTask(int argc, char* argv[])
 		SEM_WAIT(inBufferReady);			// wait for input buffer semaphore
 		if (!inBuffer[0]) continue;		// ignore blank lines
 		// printf("\n%s", inBuffer);
+		bool background_task = false;
+		bool invalid_arg = false;
+
+		if(inBuffer[strlen(inBuffer) - 1] == '&') {
+			inBuffer[strlen(inBuffer) - 1] = '\0';
+			background_task = true;
+		}
 
 		SWAP										// do context switch
 
@@ -144,14 +154,12 @@ int P1_shellTask(int argc, char* argv[])
 			int buffer_len = strlen(inBuffer) + 1;
 			bool quote = false;
 			bool delim = true;
-			bool invalid_arg = false;
 
 			int token_start = 0;
 			for (i = 0; i < buffer_len; i++) {
 				char * token;
 				switch(inBuffer[i]) {
 					case ' ':
-						printf("\nspace found");
 						if(!delim && !quote) {
 							token = createToken(inBuffer, token_start, i);
 							newArgv = addStringToArray(token, newArgv, &newArgc, &array_size);
@@ -189,12 +197,40 @@ int P1_shellTask(int argc, char* argv[])
 						delim = false;
 				}
 			}
-			for (i = 0; i < array_size; i++){
-				printf("\ntoken%d: %s", i, newArgv[i]);
+
+			// replace uppercase characters in command with lowercase characters
+			char* command = newArgv[0];
+			for(i = 0; i < strlen(command); i++) {
+				command[i] = tolower(command[i]);
 			}
 		}	// ?? >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 		// look for command
+		if(invalid_arg) {
+			printf("\nUnclosed quotation mark");
+		}
+		else {
+			for (found = i = 0; i < NUM_COMMANDS; i++)
+			{
+				if (!strcmp(newArgv[0], commands[i]->command) ||
+					 !strcmp(newArgv[0], commands[i]->shortcut))
+				{
+					// command found
+					found = TRUE;
+					if(background_task) {
+						char name[100];
+						sprintf(name, "%s%d",commands[i]->command,rand());
+						createTask(name, commands[i]->func, 1, newArgc, newArgv);
 
+					}
+					else {
+						int retValue = (*commands[i]->func)(newArgc, newArgv);
+						if (retValue) printf("\nCommand Error %d", retValue);
+					}
+					break;
+				}
+			}
+			if (!found)	printf("\nInvalid command!");
+		}
 		// ?? free up any malloc'd argv parameters
 		for(i = 0; i < newArgc; i++)
 			free(newArgv[i]);
