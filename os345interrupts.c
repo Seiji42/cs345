@@ -94,6 +94,7 @@ static void keyboard_isr()
 	assert("keyboard_isr Error" && superMode);
 
 	semSignal(charReady);					// SIGNAL(charReady) (No Swap)
+	// printf("\n char flag: %d", inChar);
 	if (charFlag == 0)
 	{
 		switch (inChar)
@@ -110,9 +111,21 @@ static void keyboard_isr()
 				semSignal(inBufferReady);	// SIGNAL(inBufferReady)
 				break;
 			}
-
+			case 0x12:						// ^r
+			{
+				printf("\n continuing task");
+				sigSignal(-1, mySIGCONT);
+				break;
+			}
+			case 0x17:						// ^w
+			{
+				printf("\n pausing current task");
+				sigSignal(-1,mySIGTSTP);
+				break;
+			}
 			case 0x18:						// ^x
 			{
+				printf("killing current tasks");
 				inBufIndx = 0;
 				inBuffer[0] = 0;
 				sigSignal(0, mySIGINT);		// interrupt task 0

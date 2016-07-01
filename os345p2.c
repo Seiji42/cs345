@@ -22,6 +22,7 @@
 #include <setjmp.h>
 #include <assert.h>
 #include <time.h>
+#include <windows.h>
 #include "os345.h"
 #include "os345signals.h"
 

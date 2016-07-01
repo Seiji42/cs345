@@ -77,8 +77,9 @@ int createTask(char* name,						// task name
 			for (size_t i = 0; i < argc; i++) {
 				tcb[tid].argv[i] = malloc(sizeof(char) * strlen(argv[i]) + 1);
 				memset(tcb[tid].argv[i], '\0', strlen(argv[i]) + 1);
-				strncpy(tcb[tid].argv[i], argv[i], sizeof(tcb[tid].argv[i]));
-				printf("\nString: %s", tcb[tid].argv[i]);
+				strncpy(tcb[tid].argv[i], argv[i], strlen(argv[i]));
+				printf("\nString Orig%d: %s",i, argv[i]);
+				printf("\nString New%d: %s",i, tcb[tid].argv[i]);
 			}
 
 			tcb[tid].event = 0;				// suspend semaphore
@@ -154,13 +155,13 @@ static void exitTask(int taskId)
 //
 int sysKillTask(int taskId)
 {
+	printf("syskill called");
 	Semaphore* sem = semaphoreList;
 	Semaphore** semLink = &semaphoreList;
 
 	// assert that you are not pulling the rug out from under yourself!
 	assert("sysKillTask Error" && tcb[taskId].name && superMode);
-	printf("\nKill Task %s", tcb[taskId].name);
-
+	
 	// signal task terminated
 	semSignal(taskSems[taskId]);
 

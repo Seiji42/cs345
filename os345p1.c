@@ -21,7 +21,6 @@
 #include <ctype.h>
 #include <setjmp.h>
 #include <assert.h>
-#include <time.h>
 #include "os345.h"
 #include "os345signals.h"
 
@@ -30,6 +29,7 @@
 // power down code from 'os345.h' that indicates the desired behavior.
 
 extern jmp_buf reset_context;
+extern int curTask;							// current task #
 // -----
 
 
@@ -58,11 +58,6 @@ Command** commands;						// shell commands
 Command** P1_init(void);
 Command* newCommand(char*, char*, int (*func)(int, char**), char*);
 
-void mySigIntHandler()
-{
-	printf("Hellomynameisinigomontoyayoukilledmyfatherpreparetodie");
-}
-
 // ***********************************************************************
 // myShell - command line interpreter
 //
@@ -77,12 +72,11 @@ void mySigIntHandler()
 // 7. Supports background execution of non-intrinsic commands.
 //
 
-
-
 char* createToken(char* string, int start, int end) {
 	char* token = malloc(sizeof(char) * (end - start + 1));
 	strncpy(token, string + start, (end - start));
 	token[end - start] = '\0';
+	printf("\nToken: %s", token);
 	return token;
 }
 
@@ -117,8 +111,6 @@ int P1_shellTask(int argc, char* argv[])
 
 	// initialize shell commands
 	commands = P1_init();					// init shell commands
-
-	sigAction(mySigIntHandler, mySIGINT);
 
 	while (1)
 	{
@@ -231,6 +223,8 @@ int P1_shellTask(int argc, char* argv[])
 			}
 			if (!found)	printf("\nInvalid command!");
 		}
+		//clear buffer
+		for (i=0; i<INBUF_SIZE; i++) inBuffer[i] = 0;
 		// ?? free up any malloc'd argv parameters
 		for(i = 0; i < newArgc; i++)
 			free(newArgv[i]);
