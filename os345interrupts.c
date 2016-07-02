@@ -111,18 +111,18 @@ static void keyboard_isr()
 				semSignal(inBufferReady);	// SIGNAL(inBufferReady)
 				break;
 			}
-			case 0x12:						// ^r
-			{
-				printf("\n continuing task");
-				sigSignal(-1, mySIGCONT);
-				break;
-			}
-			case 0x17:						// ^w
-			{
-				printf("\n pausing current task");
-				sigSignal(-1,mySIGTSTP);
-				break;
-			}
+			// case 0x12:						// ^r
+			// {
+			// 	printf("\n continuing task");
+			// 	sigSignal(-1, mySIGCONT);
+			// 	break;
+			// }
+			// case 0x17:						// ^w
+			// {
+			// 	printf("\n pausing current task");
+			// 	sigSignal(-1,mySIGTSTP);
+			// 	break;
+			// }
 			case 0x18:						// ^x
 			{
 				printf("killing current tasks");

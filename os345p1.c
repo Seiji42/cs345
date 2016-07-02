@@ -29,7 +29,6 @@
 // power down code from 'os345.h' that indicates the desired behavior.
 
 extern jmp_buf reset_context;
-extern int curTask;							// current task #
 // -----
 
 

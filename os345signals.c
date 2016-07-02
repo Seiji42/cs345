@@ -36,7 +36,7 @@ extern int curTask;							// current task #
 //
 int signals(void)
 {
-	printf("Task%d: Signal%04x", curTask, tcb[curTask].signal);
+	// printf("Task%d: Signal%04x", curTask, tcb[curTask].signal);
 	if (tcb[curTask].signal)
 	{
 		if (tcb[curTask].signal & mySIGCONT)
@@ -114,7 +114,7 @@ int sigAction(void (*sigHandler)(void), int sig)
 //
 int sigSignal(int taskId, int sig)
 {
-	// check for taskprintf("Task%d: ", taskId);
+	// check for task
 	if ((taskId >= 0) && tcb[taskId].name)
 	{
 		tcb[taskId].signal |= sig;
@@ -167,6 +167,7 @@ void createTaskSigHandlers(int tid)
 	if (tid)
 	{
 		// inherit parent signal handlers
+		printf("inheriting");
 		tcb[tid].sigIntHandler = tcb[curTask].sigIntHandler;			// mySIGINT handler
 		tcb[tid].sigIntHandler = tcb[curTask].sigContHandler;			// mySIGINT handler
 		tcb[tid].sigIntHandler = tcb[curTask].sigTstpHandler;			// mySIGINT handler

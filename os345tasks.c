@@ -155,13 +155,13 @@ static void exitTask(int taskId)
 //
 int sysKillTask(int taskId)
 {
-	printf("syskill called");
 	Semaphore* sem = semaphoreList;
 	Semaphore** semLink = &semaphoreList;
 
 	// assert that you are not pulling the rug out from under yourself!
 	assert("sysKillTask Error" && tcb[taskId].name && superMode);
-	
+	printf("\nKill Task %s", tcb[taskId].name);
+
 	// signal task terminated
 	semSignal(taskSems[taskId]);
 
