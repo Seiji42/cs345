@@ -32,7 +32,7 @@ extern jmp_buf reset_context;
 // -----
 
 
-#define NUM_COMMANDS 49
+#define NUM_COMMANDS 51
 typedef struct								// command struct
 {
 	char* command;
@@ -301,6 +301,50 @@ int P1_help(int argc, char* argv[])
 	return 0;
 } // end P1_help
 
+// ***********************************************************************
+// ***********************************************************************
+// add command
+//
+int P1_add(int argc, char* argv[])
+{
+	int i;
+	long total = 0l;
+
+	// list commands
+	for (i = 1; i < argc; i++)
+	{
+		long value;
+		char * ptr;
+		SWAP										// do context switch
+		if(strstr(argv[i], "0x")) {
+			value = strtol(argv[i], &ptr, 16);
+		}
+		else {
+			value = strtol(argv[i], &ptr, 10);
+		}
+		total += value;
+	}
+	printf("\nResult: %d", total);
+	return 0;
+} // end P1_help
+
+// ***********************************************************************
+// ***********************************************************************
+// add command
+//
+int P1_args(int argc, char* argv[])
+{
+	int i, total = 0;
+	printf("\nArguments:");
+	// list commands
+	for (i = 1; i < argc; i++)
+	{
+		SWAP										// do context switch
+		printf("\n%s", argv[i]);
+	}
+
+	return 0;
+} // end P1_help
 
 // ***********************************************************************
 // ***********************************************************************
@@ -343,6 +387,8 @@ Command** P1_init()
 	commands[i++] = newCommand("project1", "p1", P1_project1, "P1: Shell");
 	commands[i++] = newCommand("help", "he", P1_help, "OS345 Help");
 	commands[i++] = newCommand("lc3", "lc3", P1_lc3, "Execute LC3 program");
+	commands[i++] = newCommand("p1add", "add", P1_add, "Adds numeric arguments");
+	commands[i++] = newCommand("p1args", "args", P1_args, "Displays Arguments");
 
 	// P2: Tasking
 	commands[i++] = newCommand("project2", "p2", P2_project2, "P2: Tasking");
