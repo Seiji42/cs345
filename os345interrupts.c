@@ -60,6 +60,8 @@ extern int lastPollClock;			// last pollClock
 
 extern int superMode;						// system mode
 
+extern TCB tcb[];
+
 
 // **********************************************************************
 // **********************************************************************
@@ -100,10 +102,13 @@ static void keyboard_isr()
 		switch (inChar)
 		{
 			case '\b':
-				inBufIndx--;				// Adjust the buffer location
-				printf("\b \b");			// Adjust the screen display
+			{
+				if (inBufIndx > 0) {
+					inBufIndx--;
+					printf("\b \b");			// Adjust the screen display
+				}
 				break;
-
+			}
 			case '\r':
 			case '\n':
 			{
@@ -111,21 +116,25 @@ static void keyboard_isr()
 				semSignal(inBufferReady);	// SIGNAL(inBufferReady)
 				break;
 			}
-			// case 0x12:						// ^r
-			// {
-			// 	printf("\n continuing task");
-			// 	sigSignal(-1, mySIGCONT);
-			// 	break;
-			// }
-			// case 0x17:						// ^w
-			// {
-			// 	printf("\n pausing current task");
-			// 	sigSignal(-1,mySIGTSTP);
-			// 	break;
-			// }
+			case 0x12:						// ^r
+			{
+				for (int taskId=0; taskId<MAX_TASKS; taskId++)
+				{
+					if(tcb[taskId].name) {
+						tcb[taskId].signal &= ~mySIGSTOP;
+						tcb[taskId].signal &= ~mySIGTSTP;
+					}
+				}
+				sigSignal(-1, mySIGCONT);
+				break;
+			}
+			case 0x17:						// ^w
+			{
+				sigSignal(-1,mySIGTSTP);
+				break;
+			}
 			case 0x18:						// ^x
 			{
-				printf("killing current tasks");
 				inBufIndx = 0;
 				inBuffer[0] = 0;
 				sigSignal(0, mySIGINT);		// interrupt task 0
