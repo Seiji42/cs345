@@ -38,7 +38,6 @@ int signals(void)
 {
 	if (tcb[curTask].signal)
 	{
-		printf("Task%d: Signal%04x", curTask, tcb[curTask].signal);
 		if (tcb[curTask].signal & mySIGCONT)
 		{
 			tcb[curTask].signal &= ~mySIGCONT;
@@ -53,15 +52,13 @@ int signals(void)
 		{
 			tcb[curTask].signal &= ~mySIGTERM;
 			(*tcb[curTask].sigTermHandler)();
+				return 1;
 		}
 		if (tcb[curTask].signal & mySIGTSTP)
 		{
 			tcb[curTask].signal &= ~mySIGTSTP;
 			(*tcb[curTask].sigTstpHandler)();
-		}
-		if (tcb[curTask].signal & mySIGSTOP)
-		{
-			printf("task%d paused", curTask);
+				return 1;
 		}
 	}
 	return 0;

@@ -96,7 +96,6 @@ static void keyboard_isr()
 	assert("keyboard_isr Error" && superMode);
 
 	semSignal(charReady);					// SIGNAL(charReady) (No Swap)
-	// printf("\n char flag: %d", inChar);
 	if (charFlag == 0)
 	{
 		switch (inChar)

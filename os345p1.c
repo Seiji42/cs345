@@ -75,7 +75,6 @@ char* createToken(char* string, int start, int end) {
 	char* token = malloc(sizeof(char) * (end - start + 1));
 	strncpy(token, string + start, (end - start));
 	token[end - start] = '\0';
-	printf("\nToken: %s", token);
 	return token;
 }
 
@@ -119,7 +118,7 @@ int P1_shellTask(int argc, char* argv[])
 
 		SEM_WAIT(inBufferReady);			// wait for input buffer semaphore
 		if (!inBuffer[0]) continue;		// ignore blank lines
-		// printf("\n%s", inBuffer);
+		// printf("%s", inBuffer);
 		bool background_task = false;
 		bool invalid_arg = false;
 
