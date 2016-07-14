@@ -83,7 +83,7 @@ bool diskMounted;					// disk has been mounted
 time_t oldTime1;					// old 1sec time
 clock_t myClkTime;
 clock_t myOldClkTime;
-int* rq;							// ready priority queue
+PQueue rq;							// ready priority queue
 
 
 // **********************************************************************
@@ -180,6 +180,14 @@ int main(int argc, char* argv[])
 static int scheduler()
 {
 	int nextTask;
+	if((nextTask = deQ(rq, -1)) >= 0) {
+		enQ(rq, nextTask, tcb[nextTask].priority);
+		curTask = nextTask;
+		printf("\nNext task: %d", curTask);
+		for (size_t i = 1; i <= rq[0]; i++) {
+			printf("\nIndex %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
+		}
+	}
 	// ?? Design and implement a scheduler that will select the next highest
 	// ?? priority ready task to pass to the system dispatcher.
 
@@ -194,14 +202,14 @@ static int scheduler()
 	// ?? you thinking about scheduling.  You must implement code to handle
 	// ?? priorities, clean up dead tasks, and handle semaphores appropriately.
 
-	// schedule next task
-	nextTask = ++curTask;
-
-	// mask sure nextTask is valid
-	while (!tcb[nextTask].name)
-	{
-		if (++nextTask >= MAX_TASKS) nextTask = 0;
-	}
+	// // schedule next task
+	// nextTask = ++curTask;
+	//
+	// // mask sure nextTask is valid
+	// while (!tcb[nextTask].name)
+	// {
+	// 	if (++nextTask >= MAX_TASKS) nextTask = 0;
+	// }
 	if (tcb[nextTask].signal & mySIGSTOP) return -1;
 
 	return nextTask;
@@ -350,8 +358,9 @@ static int initOS()
 	diskMounted = 0;					// disk has been mounted
 
 	// malloc ready queue
-	rq = (int*)malloc(MAX_TASKS * sizeof(int));
+	rq = malloc(MAX_TASKS * sizeof(int));
 	if (rq == NULL) return 99;
+	rq[0] = 0;
 
 	// capture current time
 	lastPollClock = clock();			// last pollClock
@@ -408,3 +417,61 @@ void powerDown(int code)
 	RESTORE_OS
 	return;
 } // end powerDown
+
+/*
+	Code to put a task on a priority queue
+	q	priority queue (# | pr1/tid1 | pr2/tid2 | …)
+	tid	task id
+	p	task priority
+	int	returned tid
+*/
+int enQ(PQueue q, TID tid, Priority p) {
+	int insertValue = p << 16 | tid;
+	for (int i = q[0]; i >= 0; i--) {
+		if (i == 0) {
+			q[1] = insertValue;
+		}
+		else if ((q[i] & PRIORITY_MASK) < (insertValue & PRIORITY_MASK)) {
+			q[i + 1] = q[i];
+		}
+		else {
+			q[i + 1] = insertValue;
+			break;
+		}
+	}
+	q[0]++;
+	return tid;
+}
+
+/*
+	q	priority queue
+	tid	find and delete tid from q
+	(tid == -1  find/delete highest priority)
+	int	deleted tid
+	(tid == -1  q task not found)
+*/
+int deQ(PQueue q, TID tid) {
+	int result = -1;
+	if (tid == -1) {
+		result = q[1] & TID_MASK;
+		for (int i = 1; i <= q[0]; i++) {
+			q[i] = q[i + 1];
+		}
+	}
+	else {
+		for (int i = 1; i <= q[0]; i++) {
+			if (result == -1) {
+				if (tid == (q[i] & TID_MASK)) {
+					result = tid;
+				}
+			}
+			else {
+				q[i - 1] = q[i];
+			}
+		}
+	}
+	if (result != -1) {
+		q[0]--;
+	}
+	return result;
+}

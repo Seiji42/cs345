@@ -124,12 +124,12 @@ static void keyboard_isr()
 						tcb[taskId].signal &= ~mySIGTSTP;
 					}
 				}
-				sigSignal(-1, mySIGCONT);
+				sigSignal(ALL_TID, mySIGCONT);
 				break;
 			}
 			case 0x17:						// ^w
 			{
-				sigSignal(-1,mySIGTSTP);
+				sigSignal(ALL_TID,mySIGTSTP);
 				break;
 			}
 			case 0x18:						// ^x
