@@ -180,28 +180,8 @@ int main(int argc, char* argv[])
 static int scheduler()
 {
 	int nextTask;
-	size_t i;
-	for (i = 1; i <= rq[0]; i++) {
-		printf("\nBef Deq Index %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
-	}
 	if((nextTask = deQ(rq, -1)) >= 0) {
-
-		for (i = 1; i <= rq[0]; i++) {
-			printf("\nBTW Deq And Enq Index %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
-		}
-		// for (i = 1; i <= rq[0]; i++) {
-		// 	printf("\nBef Enq aft Deq Index %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
-		// }
-
-
 		enQ(rq, nextTask, tcb[nextTask].priority);
-		curTask = nextTask;
-
-
-		// printf("\nNext task: %d", curTask);
-		for (i = 1; i <= rq[0]; i++) {
-			printf("\nAft Enq Index %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
-		}
 	}
 	// ?? Design and implement a scheduler that will select the next highest
 	// ?? priority ready task to pass to the system dispatcher.

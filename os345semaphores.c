@@ -29,6 +29,7 @@
 
 extern TCB tcb[];							// task control block
 extern int curTask;							// current task #
+extern PQueue rq;
 
 extern int superMode;						// system mode
 extern Semaphore* semaphoreList;			// linked list of active semaphores
@@ -63,6 +64,10 @@ temp:	// ?? temporary label
 				tcb[i].state = S_READY;	// unblock task
 
 				// ?? move task from blocked to ready queue
+				int taskId;
+				if((taskId = deQ(s->q, i)) >= 0) {
+					enQ(rq, taskId, tcb[taskId].priority);
+				}
 
 				if (!superMode) swapTask();
 				return;
@@ -110,6 +115,10 @@ temp:	// ?? temporary label
 			tcb[curTask].state = S_BLOCKED;
 
 			// ?? move task from ready queue to blocked queue
+			int taskId;
+			if((taskId = deQ(rq, curTask)) >= 0) {
+				enQ(s->q, taskId, tcb[taskId].priority);
+			}
 
 			swapTask();						// reschedule the tasks
 			return 1;
@@ -212,6 +221,8 @@ Semaphore* createSemaphore(char* name, int type, int state)
 	sem->type = type;							// 0=binary, 1=counting
 	sem->state = state;						// initial semaphore state
 	sem->taskNum = curTask;					// set parent task #
+	sem->q = malloc(MAX_TASKS * sizeof(int));
+	sem->q[0] = 0;
 
 	// prepend to semaphore list
 	sem->semLink = (struct semaphore*)semaphoreList;
@@ -247,6 +258,7 @@ bool deleteSemaphore(Semaphore** semaphore)
 			// ?? free all semaphore memory
 			// ?? What should you do if there are tasks in this
 			//    semaphores blocked queue????
+			free(sem->q);
 			free(sem->name);
 			free(sem);
 
