@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 	inBufferReady = createSemaphore("inBufferReady", BINARY, 0);
 	keyboard = createSemaphore("keyboard", BINARY, 1);
 	tics1sec = createSemaphore("tics1sec", BINARY, 0);
-	tics10sec = createSemaphore("tics10sec", BINARY, 0);
+	tics10sec = createSemaphore("tics10sec", COUNTING, 2);
 	tics10thsec = createSemaphore("tics10thsec", BINARY, 0);
 
 	//?? ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -185,6 +185,10 @@ static int scheduler()
 	int nextTask;
 	if((nextTask = deQ(rq, -1)) >= 0) {
 		enQ(rq, nextTask, tcb[nextTask].priority);
+	}
+	else  {
+		printf("\n no new task.");
+		return 0;
 	}
 	// ?? Design and implement a scheduler that will select the next highest
 	// ?? priority ready task to pass to the system dispatcher.
@@ -450,7 +454,11 @@ int enQ(PQueue q, TID tid, Priority p) {
 	(tid == -1  q task not found)
 */
 int deQ(PQueue q, TID tid) {
+	printf("\nTID: %d", tid);
 	int result = -1;
+	if(q[0] == 0) {
+		return result;
+	}
 	if (tid == -1) {
 		result = q[1] & TID_MASK;
 		for (int i = 1; i <= q[0]; i++) {

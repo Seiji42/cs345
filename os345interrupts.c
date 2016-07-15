@@ -184,9 +184,9 @@ static void timer_isr()
 
     if ((currentTime - oldTime10) >= 10)
   	{
-		// signal 10 second
-  	   semSignal(tics10sec);
-		oldTime1 += 10;
+      // signal 10 second
+      semSignal(tics10sec);
+      oldTime10 += 10;
   	}
 
 	// sample fine clock

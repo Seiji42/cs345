@@ -44,6 +44,7 @@ extern Semaphore* semaphoreList;			// linked list of active semaphores
 //
 void semSignal(Semaphore* s)
 {
+	printf("\n sem Signal");
 	int i;
 	// assert there is a semaphore and it is a legal type
 	assert("semSignal Error" && s && ((s->type == 0) || (s->type == 1)));

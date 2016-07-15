@@ -105,6 +105,7 @@ int sigAction(void (*sigHandler)(void), int sig)
 //
 int sigSignal(int taskId, int sig)
 {
+	printf("\n Sig signal %d for task %d", sig, taskId);
 	// check for task
 	if ((taskId >= 0) && tcb[taskId].name)
 	{

@@ -116,6 +116,7 @@ int createTask(char* name,						// task name
 static void exitTask(int taskId);
 int killTask(int taskId)
 {
+	printf("\n kill task %d", taskId);
 	if (taskId != 0)			// don't terminate shell
 	{
 		if (taskId < 0)			// kill all tasks
@@ -139,6 +140,7 @@ int killTask(int taskId)
 
 static void exitTask(int taskId)
 {
+	printf("\n set state exit");
 	assert("exitTaskError" && tcb[taskId].name);
 
 	// 1. find task in system queue
@@ -158,6 +160,7 @@ static void exitTask(int taskId)
 //
 int sysKillTask(int taskId)
 {
+	printf("\n sys kill task %d", taskId);
 	Semaphore* sem = semaphoreList;
 	Semaphore** semLink = &semaphoreList;
 
@@ -184,6 +187,11 @@ int sysKillTask(int taskId)
 	}
 
 	// ?? delete task from system queues
+	printf("\n remove from queue");
+	printf("\n size was %d", rq[0]);
+	deQ(rq, taskId);
+	printf("\n size now %d", rq[0]);
+
 	for (size_t i = 0; i < tcb[taskId].argc; i++) {
 		free(tcb[taskId].argv[i]);
 	}
