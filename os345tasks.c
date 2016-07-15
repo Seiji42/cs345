@@ -93,9 +93,9 @@ int createTask(char* name,						// task name
 
 			// ?? may require inserting task into "ready" queue
 			enQ(rq, tid, tcb[tid].priority);
-			for (size_t i = 1; i <= rq[0]; i++) {
-				printf("\nIndex %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
-			}
+			// for (size_t i = 1; i <= rq[0]; i++) {
+			// 	printf("\nIndex %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
+			// }
 
 			if (tid) swapTask();				// do context switch (if not cli)
 			return tid;							// return tcb index (curTask)
@@ -116,7 +116,6 @@ int createTask(char* name,						// task name
 static void exitTask(int taskId);
 int killTask(int taskId)
 {
-	printf("\n kill task %d", taskId);
 	if (taskId != 0)			// don't terminate shell
 	{
 		if (taskId < 0)			// kill all tasks
@@ -140,7 +139,6 @@ int killTask(int taskId)
 
 static void exitTask(int taskId)
 {
-	printf("\n set state exit");
 	assert("exitTaskError" && tcb[taskId].name);
 
 	// 1. find task in system queue
@@ -160,7 +158,6 @@ static void exitTask(int taskId)
 //
 int sysKillTask(int taskId)
 {
-	printf("\n sys kill task %d", taskId);
 	Semaphore* sem = semaphoreList;
 	Semaphore** semLink = &semaphoreList;
 
@@ -187,10 +184,7 @@ int sysKillTask(int taskId)
 	}
 
 	// ?? delete task from system queues
-	printf("\n remove from queue");
-	printf("\n size was %d", rq[0]);
 	deQ(rq, taskId);
-	printf("\n size now %d", rq[0]);
 
 	for (size_t i = 0; i < tcb[taskId].argc; i++) {
 		free(tcb[taskId].argv[i]);

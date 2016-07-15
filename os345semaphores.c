@@ -44,7 +44,6 @@ extern Semaphore* semaphoreList;			// linked list of active semaphores
 //
 void semSignal(Semaphore* s)
 {
-	printf("\n sem Signal");
 	int i;
 	// assert there is a semaphore and it is a legal type
 	assert("semSignal Error" && s && ((s->type == 0) || (s->type == 1)));
@@ -53,53 +52,37 @@ void semSignal(Semaphore* s)
 	if (s->type == 0)
 	{
 		// binary semaphore
-		// look through tasks for one suspended on this semaphore
-
-		for (i=0; i<MAX_TASKS; i++)	// look for suspended task
-		{
-			if (tcb[i].event == s)
-			{
-				s->state = 0;				// clear semaphore
-				tcb[i].event = 0;			// clear event pointer
-				tcb[i].state = S_READY;	// unblock task
-
-				// ?? move task from blocked to ready queue
-				int taskId;
-				if((taskId = deQ(s->q, i)) >= 0) {
-					enQ(rq, taskId, tcb[taskId].priority);
-				}
-
-				if (!superMode) swapTask();
-				return;
+		if(s->q[0] != 0) {
+			int taskId;
+			if((taskId = deQ(s->q, -1)) >= 0) {
+				enQ(rq, taskId, tcb[taskId].priority);
 			}
+			s->state = 0;				// clear semaphore
+			tcb[taskId].event = 0;			// clear event pointer
+			tcb[taskId].state = S_READY;
+
+			if(!superMode) swapTask();
+			return;
 		}
 		// nothing waiting on semaphore, go ahead and just signal
 		s->state = 1;						// nothing waiting, signal
-		if (!superMode) swapTask();
+		if(!superMode) swapTask();
 		return;
 	}
 	else
 	{
 		s->state++;
 		if(s->state <= 0) {
-			for (i=0; i<MAX_TASKS; i++)	// look for suspended task
-			{
-				if (tcb[i].event == s)
-				{
-					s->state = 0;				// clear semaphore
-					tcb[i].event = 0;			// clear event pointer
-					tcb[i].state = S_READY;	// unblock task
-
-					// ?? move task from blocked to ready queue
-					int taskId;
-					if((taskId = deQ(s->q, i)) >= 0) {
-						enQ(rq, taskId, tcb[taskId].priority);
-					}
-
-					if (!superMode) swapTask();
-					return;
-				}
+			int taskId;
+			if((taskId = deQ(s->q, -1)) >= 0) {
+				enQ(rq, taskId, tcb[taskId].priority);
 			}
+
+			tcb[taskId].event = 0;			// clear event pointer
+			tcb[taskId].state = S_READY;	// unblock task
+
+			if (!superMode) swapTask();
+			return;
 		}
 		// counting semaphore
 	}

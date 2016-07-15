@@ -57,8 +57,20 @@ int P2_project2(int argc, char* argv[])
 
 	printf("\nStarting Project 2");
 	SWAP;
-/*
+
 	// start tasks looking for sTask semaphores
+
+	for (size_t i = 0; i < 9; i++) {
+		char buf[12];
+		sprintf(buf, "TenSeconds%d", i + 1);
+		createTask(buf,				// task name
+			TenSeconds,				// task
+			HIGH_PRIORITY,	// task priority
+			2,							// task argc
+			s2Argv);					// task argument pointers
+	}
+
+
 	createTask("signal1",				// task name
 					signalTask,				// task
 					VERY_HIGH_PRIORITY,	// task priority
@@ -70,19 +82,6 @@ int P2_project2(int argc, char* argv[])
 					VERY_HIGH_PRIORITY,	// task priority
 					2,							// task argc
 					s2Argv);					// task argument pointers
-
-	createTask("TenSeconds1",				// task name
-					TenSeconds,				// task
-					HIGH_PRIORITY,	// task priority
-					2,							// task argc
-					s2Argv);					// task argument pointers
-
-	createTask("TenSeconds2",				// task name
-					TenSeconds,				// task
-					HIGH_PRIORITY,	// task priority
-					2,							// task argc
-					s2Argv);					// task argument pointers
-					*/
 
 	createTask("I'm Alive",				// task name
 					ImAliveTask,			// task
@@ -194,7 +193,6 @@ int P2_killTask(int argc, char* argv[])			// kill task
 	int taskId = INTEGER(argv[1]);				// convert argument 1
 
 	if (taskId > 0) printf("\nKill Task %d", taskId);
-	else printf("\nKill All Tasks");
 
 	// kill task
 	if (killTask(taskId)) printf("\nkillTask Error!");
@@ -268,8 +266,8 @@ int TenSeconds(int argc, char* argv[])
 	char svtime[64];						// ascii current time
 	while (1)
 	{
-		printf("\nCurrent Task = %d, Time = %s", curTask, myTime(svtime));
 		SEM_WAIT(tics10sec);
+		printf("\nCurrent Task = %d, Time = %s", curTask, myTime(svtime));
 	}
 	return 0;						// terminate task
 } // end ImAliveTask
