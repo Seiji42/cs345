@@ -54,7 +54,6 @@ void semSignal(Semaphore* s)
 		// binary semaphore
 		// look through tasks for one suspended on this semaphore
 
-temp:	// ?? temporary label
 		for (i=0; i<MAX_TASKS; i++)	// look for suspended task
 		{
 			if (tcb[i].event == s)
@@ -80,10 +79,28 @@ temp:	// ?? temporary label
 	}
 	else
 	{
-		// counting semaphore
-		// ?? implement counting semaphore
+		s->state++;
+		if(s->state <= 0) {
+			for (i=0; i<MAX_TASKS; i++)	// look for suspended task
+			{
+				if (tcb[i].event == s)
+				{
+					s->state = 0;				// clear semaphore
+					tcb[i].event = 0;			// clear event pointer
+					tcb[i].state = S_READY;	// unblock task
 
-		goto temp;
+					// ?? move task from blocked to ready queue
+					int taskId;
+					if((taskId = deQ(s->q, i)) >= 0) {
+						enQ(rq, taskId, tcb[taskId].priority);
+					}
+
+					if (!superMode) swapTask();
+					return;
+				}
+			}
+		}
+		// counting semaphore
 	}
 } // end semSignal
 
@@ -108,7 +125,6 @@ int semWait(Semaphore* s)
 		// binary semaphore
 		// if state is zero, then block task
 
-temp:	// ?? temporary label
 		if (s->state == 0)
 		{
 			tcb[curTask].event = s;		// block task
@@ -129,10 +145,21 @@ temp:	// ?? temporary label
 	}
 	else
 	{
-		// counting semaphore
-		// ?? implement counting semaphore
+		s->state--;
+		if(s->state < 0) {
+			tcb[curTask].event = s;		// block task
+			tcb[curTask].state = S_BLOCKED;
 
-		goto temp;
+			int taskId;
+			if((taskId = deQ(rq, curTask)) >= 0) {
+				enQ(s->q, taskId, tcb[taskId].priority);
+			}
+
+			swapTask();						// reschedule the tasks
+			return 1;
+		}
+		// counting semaphore
+		return 0;
 	}
 } // end semWait
 
