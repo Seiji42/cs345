@@ -98,6 +98,7 @@ static void keyboard_isr()
 	semSignal(charReady);					// SIGNAL(charReady) (No Swap)
 	if (charFlag == 0)
 	{
+		// printf("\n%d %c", inChar, inChar);
 		switch (inChar)
 		{
 			case '\b':
@@ -140,7 +141,55 @@ static void keyboard_isr()
 				semSignal(inBufferReady);	// SEM_SIGNAL(inBufferReady)
 				break;
 			}
-
+			case 0x1B:
+			{
+				char temp = GET_CHAR; // get rid of extra special character
+				temp = GET_CHAR; // used to determine what the key is
+				switch (temp) {
+					case 0x33:
+					{
+						temp = GET_CHAR;
+						printf("\ndelete");
+						break;
+					}
+					case 0x41:
+					{
+						printf("\nup");
+						break;
+					}
+					case 0x42:
+					{
+						printf("\ndown");
+						break;
+					}
+					case 0x43:
+					{
+						printf("\nright");
+						break;
+					}
+					case 0x44:
+					{
+						printf("\nleft");
+						break;
+					}
+					case 0x46:
+					{
+						printf("\nend");
+						break;
+					}
+					case 0x48:
+					{
+						printf("\nhome");
+						break;
+					}
+				}
+				break;
+			}
+			case 0x7F:
+			{
+				printf("\nbackspace");
+				break;
+			}
 			default:
 			{
 				inBuffer[inBufIndx++] = inChar;
