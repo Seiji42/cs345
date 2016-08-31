@@ -115,6 +115,14 @@ typedef struct
 } Message;
 #define MAX_MESSAGE_SIZE		64
 
+// Used in lab 1 extra credit
+typedef struct command_node
+{
+	struct command_node * prev;
+	struct command_node * next;
+	char* command;
+} CommandNode;
+
 // ***********************************************************************
 // system prototypes
 int createTask(char*, int (*)(int, char**), int, int, char**);

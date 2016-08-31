@@ -41,13 +41,6 @@ typedef struct								// command struct
 	char* description;
 } Command;
 
-typedef struct command_node
-{
-	struct command_node * prev;
-	struct command_node * next;
-	char* command;
-} CommandNode;
-
 // ***********************************************************************
 // project 1 variables
 //
@@ -154,7 +147,7 @@ int P1_shellTask(int argc, char* argv[])
 			tail = tempNode;
 		}
 		head = tempNode;
-		if(++commandListSize > 5)
+		if(++commandListSize > 50)
 		{
 			commandListSize--;
 			tempNode = tail;

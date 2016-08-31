@@ -61,6 +61,12 @@ extern int lastPollClock;			// last pollClock
 extern int superMode;						// system mode
 
 extern TCB tcb[];
+extern CommandNode* head;
+extern CommandNode* tail;
+
+CommandNode* current;
+
+extern int commandPos;
 
 
 // **********************************************************************
@@ -104,7 +110,10 @@ static void keyboard_isr()
 			case '\r':
 			case '\n':
 			{
+				printf("\n%d %d\n", commandPos, inBufIndx);
 				inBufIndx = 0;				// EOL, signal line ready
+				commandPos = 0;
+				current = NULL;
 				semSignal(inBufferReady);	// SIGNAL(inBufferReady)
 				break;
 			}
@@ -146,22 +155,90 @@ static void keyboard_isr()
 					}
 					case 0x41:
 					{
-						printf("\nup");
+						if(current == NULL)
+						{
+							current = head;
+						}
+						else if (current == tail)
+						{
+							break;
+						}
+						else
+						{
+							current = current->prev;
+						}
+						if(current == NULL) {
+							break;
+						}
+
+						if(commandPos != inBufIndx)
+						{
+							while(commandPos < inBufIndx) {
+								commandPos++;
+								printf(" ");
+							}
+						}
+						while(inBufIndx-- > 0) {
+							commandPos--;
+							printf("\b \b");
+						}
+						strcpy(inBuffer, current->command);
+						inBufIndx = strlen(current->command);
+						commandPos = inBufIndx;
+						inBuffer[inBufIndx] = 0;
+						printf("%s", current->command);
 						break;
 					}
 					case 0x42:
 					{
-						printf("\ndown");
+						if(current != NULL)
+						{
+							if(commandPos != inBufIndx)
+							{
+								while(commandPos < inBufIndx) {
+									commandPos++;
+									printf(" ");
+								}
+							}
+							while(inBufIndx-- > 0) {
+								commandPos--;
+								printf("\b \b");
+							}
+
+							current = current->next;
+							if(current == NULL) {
+								commandPos = 0;
+								inBufIndx = 0;
+								inBuffer[inBufIndx] = 0;
+							}
+							else
+							{
+								strcpy(inBuffer, current->command);
+								inBufIndx = strlen(current->command);
+								commandPos = inBufIndx;
+								inBuffer[inBufIndx] = 0;
+								printf("%s", current->command);
+							}
+						}
 						break;
 					}
 					case 0x43:
 					{
-						printf("\nright");
+						// printf("\nright");
+						if(commandPos < inBufIndx)
+						{
+							printf("%c",inBuffer[commandPos++]);
+						}
 						break;
 					}
 					case 0x44:
 					{
-						printf("\nleft");
+						// printf("\nleft");
+						if(commandPos > 0)
+						{
+							commandPos--;
+							printf("\b");
+						}
 						break;
 					}
 					case 0x46:
@@ -188,7 +265,8 @@ static void keyboard_isr()
 			}
 			default:
 			{
-				inBuffer[inBufIndx++] = inChar;
+				inBuffer[commandPos++] = inChar;
+				inBufIndx++;
 				inBuffer[inBufIndx] = 0;
 				printf("%c", inChar);		// echo character
 			}
