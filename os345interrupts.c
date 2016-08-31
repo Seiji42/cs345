@@ -101,14 +101,6 @@ static void keyboard_isr()
 		// printf("\n%d %c", inChar, inChar);
 		switch (inChar)
 		{
-			case '\b':
-			{
-				if (inBufIndx > 0) {
-					inBufIndx--;
-					printf("\b \b");			// Adjust the screen display
-				}
-				break;
-			}
 			case '\r':
 			case '\n':
 			{
@@ -187,7 +179,11 @@ static void keyboard_isr()
 			}
 			case 0x7F:
 			{
-				printf("\nbackspace");
+				// printf("\nbackspace");
+				if (inBufIndx > 0) {
+					inBufIndx--;
+					printf("\b \b");			// Adjust the screen display
+				}
 				break;
 			}
 			default:
