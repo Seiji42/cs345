@@ -31,6 +31,7 @@
 
 extern TCB tcb[];							// task control block
 extern int curTask;							// current task #
+extern PQueue rq;
 
 extern int superMode;						// system mode
 extern Semaphore* semaphoreList;			// linked list of active semaphores
@@ -78,8 +79,6 @@ int createTask(char* name,						// task name
 				tcb[tid].argv[i] = malloc(sizeof(char) * strlen(argv[i]) + 1);
 				memset(tcb[tid].argv[i], '\0', strlen(argv[i]) + 1);
 				strncpy(tcb[tid].argv[i], argv[i], strlen(argv[i]));
-				printf("\nString Orig%d: %s",i, argv[i]);
-				printf("\nString New%d: %s",i, tcb[tid].argv[i]);
 			}
 
 			tcb[tid].event = 0;				// suspend semaphore
@@ -93,6 +92,10 @@ int createTask(char* name,						// task name
 			tcb[tid].stack = malloc(STACK_SIZE * sizeof(int));
 
 			// ?? may require inserting task into "ready" queue
+			enQ(rq, tid, tcb[tid].priority);
+			// for (size_t i = 1; i <= rq[0]; i++) {
+			// 	printf("\nIndex %d: TID: %d, Priority: %d", i, rq[i] & TID_MASK, rq[i] >> 16);
+			// }
 
 			if (tid) swapTask();				// do context switch (if not cli)
 			return tid;							// return tcb index (curTask)
@@ -181,6 +184,8 @@ int sysKillTask(int taskId)
 	}
 
 	// ?? delete task from system queues
+	deQ(rq, taskId);
+
 	for (size_t i = 0; i < tcb[taskId].argc; i++) {
 		free(tcb[taskId].argv[i]);
 	}

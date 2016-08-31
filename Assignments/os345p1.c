@@ -51,6 +51,10 @@ extern bool diskMounted;				// disk has been mounted
 extern char dirPath[];					// directory path
 Command** commands;						// shell commands
 
+CommandNode * head;
+CommandNode * tail;
+int commandListSize;
+
 
 // ***********************************************************************
 // project 1 prototypes
@@ -107,6 +111,11 @@ int P1_shellTask(int argc, char* argv[])
 	int i, found, newArgc;					// # of arguments
 	char** newArgv;							// pointers to arguments
 
+	// initialize command list
+	head = NULL;
+	tail = NULL;
+	commandListSize = 0;
+
 	// initialize shell commands
 	commands = P1_init();					// init shell commands
 
@@ -121,6 +130,43 @@ int P1_shellTask(int argc, char* argv[])
 		// printf("%s", inBuffer);
 		bool background_task = false;
 		bool invalid_arg = false;
+
+		// Add command and remove tail if size exceeds 50
+		CommandNode * tempNode = malloc(sizeof(CommandNode));
+
+		tempNode->command = malloc(sizeof(char) * strlen(inBuffer));
+		strcpy(tempNode->command, inBuffer);
+		tempNode->next = NULL;
+		tempNode->prev = head;
+		if(head != NULL)
+		{
+			head->next = tempNode;
+		}
+		else
+		{
+			tail = tempNode;
+		}
+		head = tempNode;
+		if(++commandListSize > 50)
+		{
+			commandListSize--;
+			tempNode = tail;
+			tail = tempNode->next;
+			tail->prev = NULL;
+			free(tempNode->command);
+			free(tempNode);
+		}
+
+		if(head != NULL)
+		{
+			tempNode = head;
+			while (tempNode != NULL)
+			{
+				printf("\n%s %d", tempNode->command, strlen(tempNode->command));
+				tempNode = tempNode->prev;
+			}
+		}
+
 
 		if(inBuffer[strlen(inBuffer) - 1] == '&') {
 			inBuffer[strlen(inBuffer) - 1] = '\0';
@@ -209,7 +255,7 @@ int P1_shellTask(int argc, char* argv[])
 					if(background_task) {
 						char name[100];
 						sprintf(name, "%s%d",commands[i]->command,rand());
-						createTask(name, commands[i]->func, 1, newArgc, newArgv);
+						createTask(name, commands[i]->func, MED_PRIORITY, newArgc, newArgv);
 
 					}
 					else {
@@ -262,6 +308,14 @@ int P1_quit(int argc, char* argv[])
 		free(commands[i]->description);
 	}
 	free(commands);
+
+	while (head != NULL) {
+		CommandNode * temp = head;
+		printf("\n%s", head->command);
+		free(head->command);
+		head = head->prev;
+		free(temp);
+	}
 
 	// powerdown OS345
 	longjmp(reset_context, POWER_DOWN_QUIT);

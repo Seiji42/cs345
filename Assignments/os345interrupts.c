@@ -44,6 +44,7 @@ extern Semaphore* charReady;				// character has been entered
 extern Semaphore* inBufferReady;			// input buffer ready semaphore
 
 extern Semaphore* tics1sec;				// 1 second semaphore
+extern Semaphore* tics10sec;				// 1 second semaphore
 extern Semaphore* tics10thsec;				// 1/10 second semaphore
 
 extern char inChar;				// last entered character
@@ -52,6 +53,7 @@ extern int inBufIndx;				// input pointer into input buffer
 extern char inBuffer[INBUF_SIZE+1];	// character input buffer
 
 extern time_t oldTime1;					// old 1sec time
+extern time_t oldTime10;					// old 10sec time
 extern clock_t myClkTime;
 extern clock_t myOldClkTime;
 
@@ -61,6 +63,12 @@ extern int lastPollClock;			// last pollClock
 extern int superMode;						// system mode
 
 extern TCB tcb[];
+extern CommandNode* head;
+extern CommandNode* tail;
+
+CommandNode* current;
+
+extern int commandPos;
 
 
 // **********************************************************************
@@ -98,21 +106,14 @@ static void keyboard_isr()
 	semSignal(charReady);					// SIGNAL(charReady) (No Swap)
 	if (charFlag == 0)
 	{
-		// printf("\n%d %c", inChar, inChar);
 		switch (inChar)
 		{
-			case '\b':
-			{
-				if (inBufIndx > 0) {
-					inBufIndx--;
-					printf("\b \b");			// Adjust the screen display
-				}
-				break;
-			}
 			case '\r':
 			case '\n':
 			{
 				inBufIndx = 0;				// EOL, signal line ready
+				commandPos = 0;
+				current = NULL;
 				semSignal(inBufferReady);	// SIGNAL(inBufferReady)
 				break;
 			}
@@ -125,12 +126,12 @@ static void keyboard_isr()
 						tcb[taskId].signal &= ~mySIGTSTP;
 					}
 				}
-				sigSignal(-1, mySIGCONT);
+				sigSignal(ALL_TID, mySIGCONT);
 				break;
 			}
 			case 0x17:						// ^w
 			{
-				sigSignal(-1,mySIGTSTP);
+				sigSignal(ALL_TID,mySIGTSTP);
 				break;
 			}
 			case 0x18:						// ^x
@@ -149,37 +150,122 @@ static void keyboard_isr()
 					case 0x33:
 					{
 						temp = GET_CHAR;
-						printf("\ndelete");
+
+						if(commandPos < inBufIndx) {
+							for (size_t i = commandPos; i < inBufIndx; i++) {
+								inBuffer[i] = inBuffer[i + 1];
+								printf("%c", inBuffer[i]);
+							}
+							printf(" ");
+							for (size_t i = commandPos; i < inBufIndx; i++) {
+								printf("\b", inBuffer[i]);
+							}
+							inBuffer[--inBufIndx] = 0;
+						}
+
 						break;
 					}
 					case 0x41:
 					{
-						printf("\nup");
+						if(current == NULL)
+						{
+							current = head;
+						}
+						else if (current == tail)
+						{
+							break;
+						}
+						else
+						{
+							current = current->prev;
+						}
+						if(current == NULL) {
+							break;
+						}
+
+						if(commandPos != inBufIndx)
+						{
+							while(commandPos < inBufIndx) {
+								commandPos++;
+								printf(" ");
+							}
+						}
+						while(inBufIndx-- > 0) {
+							commandPos--;
+							printf("\b \b");
+						}
+						strcpy(inBuffer, current->command);
+						inBufIndx = strlen(current->command);
+						commandPos = inBufIndx;
+						inBuffer[inBufIndx] = 0;
+						printf("%s", current->command);
 						break;
 					}
 					case 0x42:
 					{
-						printf("\ndown");
+						if(current != NULL)
+						{
+							if(commandPos != inBufIndx)
+							{
+								while(commandPos < inBufIndx) {
+									commandPos++;
+									printf(" ");
+								}
+							}
+							while(inBufIndx-- > 0) {
+								commandPos--;
+								printf("\b \b");
+							}
+
+							current = current->next;
+							if(current == NULL) {
+								commandPos = 0;
+								inBufIndx = 0;
+								inBuffer[inBufIndx] = 0;
+							}
+							else
+							{
+								strcpy(inBuffer, current->command);
+								inBufIndx = strlen(current->command);
+								commandPos = inBufIndx;
+								inBuffer[inBufIndx] = 0;
+								printf("%s", current->command);
+							}
+						}
 						break;
 					}
 					case 0x43:
 					{
-						printf("\nright");
+						if(commandPos < inBufIndx)
+						{
+							printf("%c",inBuffer[commandPos++]);
+						}
 						break;
 					}
 					case 0x44:
 					{
-						printf("\nleft");
+						if(commandPos > 0)
+						{
+							commandPos--;
+							printf("\b");
+						}
 						break;
 					}
 					case 0x46:
 					{
-						printf("\nend");
+						while (commandPos < inBufIndx)
+						{
+							printf("%c",inBuffer[commandPos++]);
+						}
 						break;
 					}
 					case 0x48:
 					{
-						printf("\nhome");
+						while (commandPos > 0)
+						{
+							commandPos--;
+							printf("\b");
+						}
 						break;
 					}
 				}
@@ -187,12 +273,47 @@ static void keyboard_isr()
 			}
 			case 0x7F:
 			{
-				printf("\nbackspace");
+				if (commandPos > 0)
+				{
+					if(commandPos == inBufIndx)
+					{
+						printf("\b \b");
+					}
+					else {
+						printf("\b");
+						for (size_t i = commandPos; i < inBufIndx; i++) {
+							inBuffer[i - 1] = inBuffer[i];
+							printf("%c", inBuffer[i - 1]);
+						}
+						printf(" ");
+						for (size_t i = commandPos; i <= inBufIndx; i++) {
+							printf("\b", inBuffer[i]);
+						}
+					}
+					inBuffer[--inBufIndx] = 0;
+					commandPos--;
+					/*
+						steps:
+						while commandpos
+					*/
+				}
 				break;
 			}
 			default:
 			{
-				inBuffer[inBufIndx++] = inChar;
+				if(commandPos < inBufIndx)
+				{
+					printf(" ");
+					for (size_t i = inBufIndx; i > commandPos; i--) {
+						inBuffer[i] = inBuffer[i - 1];
+						printf("%c", inBuffer[i]);
+					}
+					for (size_t i = inBufIndx; i >= commandPos; i--) {
+						printf("\b");
+					}
+				}
+				inBuffer[commandPos++] = inChar;
+				inBufIndx++;
 				inBuffer[inBufIndx] = 0;
 				printf("%c", inChar);		// echo character
 			}
@@ -227,6 +348,13 @@ static void timer_isr()
 		// signal 1 second
   	   semSignal(tics1sec);
 		oldTime1 += 1;
+  	}
+
+    if ((currentTime - oldTime10) >= 10)
+  	{
+      // signal 10 second
+      semSignal(tics10sec);
+      oldTime10 += 10;
   	}
 
 	// sample fine clock

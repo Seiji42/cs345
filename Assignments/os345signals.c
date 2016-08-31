@@ -111,7 +111,7 @@ int sigSignal(int taskId, int sig)
 		tcb[taskId].signal |= sig;
 		return 0;
 	}
-	else if (taskId == -1)
+	else if (taskId == ALL_TID)
 	{
 		for (taskId=0; taskId<MAX_TASKS; taskId++)
 		{
@@ -135,7 +135,7 @@ void defaultSigContHandler()
 
 void defaultSigIntHandler()
 {
-	sigSignal(-1, mySIGTERM);
+	sigSignal(ALL_TID, mySIGTERM);
 }
 
 void defaultSigTermHandler()
@@ -145,8 +145,7 @@ void defaultSigTermHandler()
 
 void defaultSigTstpHandler()
 {
-	printf("pausing all tasks");
-	sigSignal(-1, mySIGSTOP);
+	sigSignal(ALL_TID, mySIGSTOP);
 }
 
 
