@@ -255,7 +255,7 @@ int P1_shellTask(int argc, char* argv[])
 					if(background_task) {
 						char name[100];
 						sprintf(name, "%s%d",commands[i]->command,rand());
-						createTask(name, commands[i]->func, 1, newArgc, newArgv);
+						createTask(name, commands[i]->func, MED_PRIORITY, newArgc, newArgv);
 
 					}
 					else {

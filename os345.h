@@ -68,6 +68,11 @@ enum {PAGE_INIT, PAGE_READ, PAGE_OLD_WRITE, PAGE_NEW_WRITE,
 typedef int bool;						// boolean value
 enum {false, true};
 typedef int TID;						// task id
+typedef int Priority;
+typedef int* PQueue;
+
+#define TID_MASK	0x0000FFFF
+#define PRIORITY_MASK	0xFFFF0000
 
 // semaphore
 typedef struct semaphore			// semaphore
@@ -77,6 +82,7 @@ typedef struct semaphore			// semaphore
 	int state;							// semaphore state
 	int type;							// semaphore type
 	int taskNum;						// semaphore creator task #
+	PQueue q;						// blocked queue
 } Semaphore;
 
 // task control block
@@ -139,6 +145,9 @@ bool deleteSemaphore(Semaphore** semaphore);
 void semSignal(Semaphore*);
 int semWait(Semaphore*);
 int semTryLock(Semaphore*);
+
+int enQ(PQueue q, TID tid, Priority p);
+int deQ(PQueue q, TID tid);
 
 
 // ***********************************************************************
