@@ -162,7 +162,7 @@ int P1_shellTask(int argc, char* argv[])
 			tempNode = head;
 			while (tempNode != NULL)
 			{
-				printf("\n%s %d", tempNode->command, strlen(tempNode->command));
+				// printf("\n%s %d", tempNode->command, strlen(tempNode->command));
 				tempNode = tempNode->prev;
 			}
 		}
