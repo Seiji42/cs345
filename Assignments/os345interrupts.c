@@ -158,14 +158,14 @@ static void keyboard_isr()
 							}
 							printf(" ");
 							for (size_t i = commandPos; i < inBufIndx; i++) {
-								printf("\b", inBuffer[i]);
+								printf("\b");
 							}
 							inBuffer[--inBufIndx] = 0;
 						}
 
 						break;
 					}
-					case 0x41:
+					case 0x41://up
 					{
 						if(current == NULL)
 						{
@@ -201,7 +201,7 @@ static void keyboard_isr()
 						printf("%s", current->command);
 						break;
 					}
-					case 0x42:
+					case 0x42://down
 					{
 						if(current != NULL)
 						{
@@ -234,7 +234,7 @@ static void keyboard_isr()
 						}
 						break;
 					}
-					case 0x43:
+					case 0x43://right
 					{
 						if(commandPos < inBufIndx)
 						{
@@ -242,7 +242,7 @@ static void keyboard_isr()
 						}
 						break;
 					}
-					case 0x44:
+					case 0x44://left
 					{
 						if(commandPos > 0)
 						{
@@ -287,7 +287,7 @@ static void keyboard_isr()
 						}
 						printf(" ");
 						for (size_t i = commandPos; i <= inBufIndx; i++) {
-							printf("\b", inBuffer[i]);
+							printf("\b");
 						}
 					}
 					inBuffer[--inBufIndx] = 0;
@@ -306,6 +306,8 @@ static void keyboard_isr()
 					printf(" ");
 					for (size_t i = inBufIndx; i > commandPos; i--) {
 						inBuffer[i] = inBuffer[i - 1];
+					}
+					for (size_t i = commandPos + 1; i <= inBufIndx; i++) {
 						printf("%c", inBuffer[i]);
 					}
 					for (size_t i = inBufIndx; i >= commandPos; i--) {
