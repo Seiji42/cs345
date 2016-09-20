@@ -129,6 +129,14 @@ typedef struct command_node
 	char* command;
 } CommandNode;
 
+// Lab 3 delta clock
+typedef struct dc
+{
+	struct dc * next;
+	Semaphore * event;
+	int tics;
+} DeltaClock;
+
 // ***********************************************************************
 // system prototypes
 int createTask(char*, int (*)(int, char**), int, int, char**);

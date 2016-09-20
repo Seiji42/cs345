@@ -34,7 +34,7 @@ extern Semaphore* parkMutex;						// protect park access
 extern Semaphore* fillSeat[NUM_CARS];			// (signal) seat ready to fill
 extern Semaphore* seatFilled[NUM_CARS];		// (wait) passenger seated
 extern Semaphore* rideOver[NUM_CARS];			// (signal) ride over
-
+DeltaClock * dc;
 
 // ***********************************************************************
 // project 3 functions and tasks
@@ -80,6 +80,47 @@ int P3_dc(int argc, char* argv[])
 	printf("\nTo Be Implemented!");
 	return 0;
 } // end CL3_dc
+
+// Should there be swaps between each line? I dont think so
+void add_to_dc(int tics, Semaphore * event)
+{
+	DeltaClock * temp = malloc(sizeof(DeltaClock));
+	temp->tics = tics;
+	temp->event = event;
+	temp->next = NULL;
+
+	if(dc == NULL)
+	{
+		dc = temp;
+	}
+	else
+	{
+		current = dc;
+		if(temp->tics < current->tics)
+		{
+			temp->next = current;
+			dc = temp;
+		}
+		else {
+			while(temp->tics >= current->tics && current->next != NULL)
+			{
+				temp->tics -= current->tics;
+				current == current->next;
+			}
+			temp->next = current->next;
+			current->next = temp;
+		}
+	}
+}
+
+void clear_dc ()
+{
+	while(dc != NULL) {
+		DeltaClock * temp = dc;
+		dc = dc->next;
+		free(temp);
+	}
+}
 
 
 /*
